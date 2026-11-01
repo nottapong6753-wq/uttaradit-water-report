@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดสถานการณ์น้ำและความจุน้ำ - เขื่อนสิริกิติ์ อุตรดิตถ์</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Prompt', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Google Font: Prompt & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Prompt', 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .dark .glass-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-cyan-50 via-sky-100 to-blue-200 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-nav border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                    <i class="fa-solid fa-water text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+                        <span>เขื่อนสิริกิติ์ (อุตรดิตถ์)</span>
+                        <span class="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 rounded-full font-medium">สถานะ: ปกติ</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">ระบบรายงานสถานการณ์ความจุน้ำอ่างเก็บน้ำขนาดใหญ่</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- Data Source Badge -->
+                <span class="hidden md:inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                    <i class="fa-solid fa-sync text-cyan-500 animate-spin"></i> อัปเดตล่าสุด: วันนี้ 16:00 น.
+                </span>
+
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" onclick="toggleTheme()" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition shadow-sm">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Banner Alert -->
+        <div class="glass-card rounded-2xl p-4 sm:p-5 shadow-lg border-l-4 border-l-cyan-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start space-x-3">
+                <div class="p-2.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-xl text-lg mt-0.5 sm:mt-0">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-base">รายงานสรุปภาพรวมความจุน้ำเขื่อนสิริกิติ์ อ.ท่าปลา จ.อุตรดิตถ์</h2>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">ปริมาณน้ำปัจจุบันอยู่ในเกณฑ์ดี (81.18%) สามารถรองรับน้ำได้อีกกว่า 1,789 ล้าน ลบ.ม. พร้อมบริหารจัดการน้ำเพื่อการเกษตรและอุปโภคบริโภค</p>
+                </div>
+            </div>
+            <div class="text-xs font-semibold px-3 py-1.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-xl whitespace-nowrap">
+                อำเภอท่าปลา จังหวัดอุตรดิตถ์
+            </div>
+        </div>
+
+        <!-- Section 1: Core Metrics Grid (4 Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Card 1: Total Storage -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-cyan-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs uppercase font-bold px-2.5 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-full">ปริมาณน้ำในอ่างฯ</span>
+                        <i class="fa-solid fa-water text-cyan-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-black text-cyan-600 dark:text-cyan-400 mt-2">7,720.39 <span class="text-sm font-normal text-slate-500">ล้าน ลบ.ม.</span></div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <div class="flex-1 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-cyan-500 to-blue-600 h-full rounded-full" style="width: 81.18%;"></div>
+                        </div>
+                        <span class="text-xs font-bold text-cyan-600 dark:text-cyan-400">81.18%</span>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-500 flex justify-between">
+                    <span>ความจุอ่างทั้งหมด</span>
+                    <span class="font-bold">9,510 ล้าน ลบ.ม.</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Usable Water -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs uppercase font-bold px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full">น้ำใช้การได้ (Usable)</span>
+                        <i class="fa-solid fa-faucet-dripping text-blue-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-black text-blue-600 dark:text-blue-400 mt-2">4,870.39 <span class="text-sm font-normal text-slate-500">ล้าน ลบ.ม.</span></div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <div class="flex-1 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full" style="width: 73.13%;"></div>
+                        </div>
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400">73.13%</span>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-500 flex justify-between">
+                    <span>ปริมาณน้ำพร้อมใช้งานจริง</span>
+                    <span class="font-bold text-emerald-500">เพียงพอตลอดฤดู</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Remaining Capacity for Flood Control -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs uppercase font-bold px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full">พื้นที่รองรับน้ำ</span>
+                        <i class="fa-solid fa-cloud-rain text-emerald-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2">1,789.61 <span class="text-sm font-normal text-slate-500">ล้าน ลบ.ม.</span></div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <div class="flex-1 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full" style="width: 18.82%;"></div>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">18.82%</span>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-500 flex justify-between">
+                    <span>ช่องว่างรองรับน้ำหลาก</span>
+                    <span class="font-bold text-emerald-600">ปลอดภัยสูง</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Water Level & Flow -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs uppercase font-bold px-2.5 py-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full">ระดับน้ำเหนือเขื่อน</span>
+                        <i class="fa-solid fa-mountain text-sky-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-black text-sky-600 dark:text-sky-400 mt-2">154.73 <span class="text-sm font-normal text-slate-500">เมตร (รทก.)</span></div>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white/40 dark:bg-slate-800/40 p-2 rounded-xl">
+                            <span class="text-slate-400 block text-[10px]">น้ำไหลเข้า</span>
+                            <span class="font-bold text-cyan-600 dark:text-cyan-400">6.68 ลบ.ม./วัน</span>
+                        </div>
+                        <div class="bg-white/40 dark:bg-slate-800/40 p-2 rounded-xl">
+                            <span class="text-slate-400 block text-[10px]">แผนระบายน้ำ</span>
+                            <span class="font-bold text-blue-600 dark:text-blue-400">20.0 ลบ.ม./วัน</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-500 flex justify-between">
+                    <span>สถานี: อ.ท่าปลา จ.อุตรดิตถ์</span>
+                    <span class="font-bold text-sky-500">ปกติ</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section 2: Visual Comparison Chart & Inflow/Outflow Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Capacity Breakdown Chart/Card (2 Cols) -->
+            <div class="lg:col-span-2 glass-card rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold">สัดส่วนความจุน้ำอ่างเก็บน้ำเขื่อนสิริกิติ์</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">เปรียบเทียบปริมาณน้ำปัจจุบันเทียบกับความจุรวมทั้งสิ้น 9,510 ล้าน ลบ.ม.</p>
+                        </div>
+                        <span class="px-3 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold text-xs rounded-full">ความจุรวม 100%</span>
+                    </div>
+
+                    <!-- Visual Capacity Meter Bars -->
+                    <div class="space-y-6 my-6">
+                        <div>
+                            <div class="flex justify-between text-sm mb-2 font-medium">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-circle text-cyan-500 text-xs"></i> ปริมาณน้ำในอ่างปัจจุบัน (81.18%)</span>
+                                <span class="font-bold">7,720.39 ล้าน ลบ.ม.</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-5 rounded-2xl overflow-hidden p-0.5 shadow-inner">
+                                <div class="bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 h-full rounded-xl transition-all duration-1000" style="width: 81.18%;"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-2 font-medium">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-circle text-blue-400 text-xs"></i> ปริมาณน้ำใช้การได้ (73.13%)</span>
+                                <span class="font-bold">4,870.39 ล้าน ลบ.ม.</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-5 rounded-2xl overflow-hidden p-0.5 shadow-inner">
+                                <div class="bg-gradient-to-r from-blue-400 to-cyan-500 h-full rounded-xl transition-all duration-1000" style="width: 73.13%;"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-2 font-medium">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-circle text-emerald-400 text-xs"></i> พื้นที่ว่างรองรับน้ำอ่างฯ (18.82%)</span>
+                                <span class="font-bold">1,789.61 ล้าน ลบ.ม.</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-5 rounded-2xl overflow-hidden p-0.5 shadow-inner">
+                                <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-xl transition-all duration-1000" style="width: 18.82%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 text-center">
+                    <div class="p-3 rounded-2xl bg-white/40 dark:bg-slate-800/40">
+                        <div class="text-[11px] text-slate-400">ระดับน้ำสูงสุด</div>
+                        <div class="text-sm font-bold mt-1">160.00 ม. (รทก.)</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white/40 dark:bg-slate-800/40">
+                        <div class="text-[11px] text-slate-400">ระดับน้ำปัจจุบัน</div>
+                        <div class="text-sm font-bold text-cyan-600 dark:text-cyan-400 mt-1">154.73 ม. (รทก.)</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white/40 dark:bg-slate-800/40">
+                        <div class="text-[11px] text-slate-400">ระดับน้ำต่ำสุด</div>
+                        <div class="text-sm font-bold mt-1">130.00 ม. (รทก.)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inflow & Outflow Card (1 Col) -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold mb-1">สมดุลน้ำ (Water Balance)</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">อัตราการไหลเข้าและระบายออกรายวัน</p>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400">น้ำไหลเข้าอ่างฯ (Inflow)</div>
+                                    <div class="text-base font-bold">6.68 ลบ.ม.</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] px-2 py-1 bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-300 font-bold rounded-lg">ล้าน ลบ.ม./วัน</span>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400">แผนระบายน้ำ (Release)</div>
+                                    <div class="text-base font-bold">20.00 ลบ.ม.</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 font-bold rounded-lg">ล้าน ลบ.ม./วัน</span>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400">สุทธิสะสมรายวัน</div>
+                                    <div class="text-base font-bold text-amber-600 dark:text-amber-400">-13.32 ลบ.ม.</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] px-2 py-1 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 font-bold rounded-lg">สมดุลควบคุม</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 text-[11px] text-slate-500 text-center">
+                    ควบคุมการระบายโดย กฟผ. และกรมชลประทาน
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section 3: Detailed Water Data Table -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-lg font-bold">ตารางข้อมูลรายละเอียดสถานการณ์น้ำเขื่อนสิริกิติ์</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">รายการพารามิเตอร์และตัวชี้วัดสถานการณ์น้ำเชิงลึกประจำวัน</p>
+                </div>
+                <button onclick="alert('ดาวน์โหลดรายงานฉบับเต็มเรียบร้อย')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl shadow-md shadow-cyan-600/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-download text-[10px]"></i>
+                    <span>ส่งออกรายงาน (PDF/Excel)</span>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4 font-semibold">รายการข้อมูล</th>
+                            <th class="py-3 px-4 font-semibold">ค่าปัจจุบัน</th>
+                            <th class="py-3 px-4 font-semibold">คิดเป็นร้อยละ</th>
+                            <th class="py-3 px-4 font-semibold">สถานะเกณฑ์</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200/50 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-water text-cyan-500"></i> ปริมาณน้ำในอ่างเก็บน้ำทั้งหมด
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">7,720.39 ล้าน ลบ.ม.</td>
+                            <td class="py-3.5 px-4 font-bold text-cyan-600 dark:text-cyan-400">81.18%</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 font-bold rounded-lg text-xs">ปกติ (สมบูรณ์)</span></td>
+                        </tr>
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-faucet-dripping text-blue-500"></i> ปริมาณน้ำใช้การได้ (Usable Water)
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">4,870.39 ล้าน ลบ.ม.</td>
+                            <td class="py-3.5 px-4 font-bold text-blue-600 dark:text-blue-400">73.13%</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 font-bold rounded-lg text-xs">น้ำใช้การได้ดีเยี่ยม</span></td>
+                        </tr>
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-rain text-emerald-500"></i> พื้นที่ว่างรองรับน้ำ (Flood Control Space)
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">1,789.61 ล้าน ลบ.ม.</td>
+                            <td class="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400">18.82%</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-300 font-bold rounded-lg text-xs">รองรับน้ำได้มาก</span></td>
+                        </tr>
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-mountain text-sky-500"></i> ระดับน้ำเหนือเขื่อน
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">154.73 เมตร (รทก.)</td>
+                            <td class="py-3.5 px-4 font-bold">-</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-300 font-bold rounded-lg text-xs">ต่ำกว่าระดับวิกฤต</span></td>
+                        </tr>
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-down text-cyan-500"></i> ปริมาณน้ำไหลเข้าอ่างฯ (Inflow)
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">6.68 ล้าน ลบ.ม. / วัน</td>
+                            <td class="py-3.5 px-4 font-bold">-</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-lg text-xs">อัตราปกติ</span></td>
+                        </tr>
+                        <tr class="hover:bg-white/30 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-medium flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-up text-blue-500"></i> แผนการระบายน้ำ (Release)
+                            </td>
+                            <td class="py-3.5 px-4 font-bold">20.00 ล้าน ลบ.ม. / วัน</td>
+                            <td class="py-3.5 px-4 font-bold">-</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 font-bold rounded-lg text-xs">ควบคุมตามแผน</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 border-t border-slate-200 dark:border-slate-800 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p>แดชบอร์ดรายงานสถานการณ์ความจุน้ำ เขื่อนสิริกิติ์ อำเภอท่าปลา จังหวัดอุตรดิตถ์</p>
+            <p>&copy; 2026 Sirikit Dam Water Management Dashboard. พัฒนาด้วยดีไซน์ Modern Glassmorphism.</p>
+        </div>
+    </footer>
+
+    <!-- Script for Theme Toggle -->
+    <script>
+        const htmlElement = document.documentElement;
+        const themeIcon = document.getElementById('theme-icon');
+
+        function updateThemeIcon(isDark) {
+            if (isDark) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        updateThemeIcon(htmlElement.classList.contains('dark'));
+
+        function toggleTheme() {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                updateThemeIcon(false);
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeIcon(true);
+            }
+        }
+    </script>
+</body>
+</html>
